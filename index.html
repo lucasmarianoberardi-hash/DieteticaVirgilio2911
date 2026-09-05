@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito de Compras con Descuentos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
+      color: #333;
+    }
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .item-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .cupon-container {
+      margin: 20px 0;
+      padding: 12px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-aplicar { background-color: #4CAF50; color: white; }
+    .btn-wa { background-color: #25D366; color: white; width: 100%; margin-bottom: 8px; }
+    .btn-print { background-color: #008CBA; color: white; width: 100%; }
+    .resumen-totales {
+      margin: 15px 0;
+      font-size: 1.05em;
+    }
+    .mensaje {
+      margin-top: 6px;
+      font-size: 0.85em;
+      font-weight: bold;
+    }
+    .mensaje.exito { color: #2e7d32; }
+    .mensaje.error { color: #c62828; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Tu Carrito</h2>
+    
+    <div id="lista-productos">
+      <div class="item-line">
+        <span>1x Saint Gottard Dulces Sueños</span>
+        <span>$1500.00</span>
+      </div>
+      <div class="item-line">
+        <span>2x Tisana Anti Stress</span>
+        <span>$2000.00</span>
+      </div>
+    </div>
+
+    <div class="cupon-container">
+      <label for="codigoCupon"><strong>¿Tienes un cupón?</strong></label>
+      <div class="input-group">
+        <input type="text" id="codigoCupon" placeholder="Ingrese o escanee código">
+        <button type="button" class="btn-aplicar" onclick="aplicarCupon()">Aplicar</button>
+      </div>
+      <div id="mensajeCupon" class="mensaje"></div>
+    </div>
+
+    <div class="resumen-totales">
+      <div class="item-line">
+        <span>Subtotal:</span>
+        <span id="txt-subtotal">$3500.00</span>
+      </div>
+      <div class="item-line" id="fila-descuento" style="display: none; color: #2e7d32;">
+        <span>Descuento aplicado (<span id="txt-porcentaje">0</span>%):</span>
+        <span id="txt-descuento">-$0.00</span>
+      </div>
+      <div class="item-line" style="font-weight: bold; font-size: 1.2em;">
+        <span>Total:</span>
+        <span id="txt-total">$3500.00</span>
+      </div>
+    </div>
+
+    <button class="btn-wa" onclick="enviarWhatsApp()">Enviar Pedido por WhatsApp</button>
+    <button class="btn-print" onclick="imprimirCarrito()">Imprimir Carrito / Comanda</button>
+  </div>
+
+  <script>
+    // Subtotal base fijo para el ejemplo
+    let subtotal = 3500.00; 
+    let porcentajeDescuento = 0;
+    let codigoAplicado = "";
+
+    // Simulación de la base de datos de la hoja "descuentos"
+    // Reemplazar este array por la respuesta de la API/Google Sheets
+    const hojaDescuentos = [
+      { "codigo discount": "DESCUENTO10", "% desc": 10 },
+      { "codigo discount": "PROMO20", "% desc": 20 },
+      { "codigo discount": "PROMO30", "% desc": 30 }
+    ];
+
+    function aplicarCupon() {
+      const input = document.getElementById('codigoCupon').value.trim().toUpperCase();
+      const mensaje = document.getElementById('mensajeCupon');
+
+      if (!input) {
+        mensaje.className = "mensaje error";
+        mensaje.textContent = "Ingrese un código de descuento.";
+        return;
+      }
+
+      // Buscar el código en los registros de la hoja
+      const cupon = hojaDescuentos.find(
+        item => String(item["codigo discount"]).trim().toUpperCase() === input
+      );
+
+      if (cupon) {
+        porcentajeDescuento = parseFloat(cupon["% desc"]) || 0;
+        codigoAplicado = input;
+
+        mensaje.className = "mensaje exito";
+        mensaje.textContent = `¡Cupón "${input}" aplicado correctamente!`;
+      } else {
+        porcentajeDescuento = 0;
+        codigoAplicado = "";
+
+        mensaje.className = "mensaje error";
+        mensaje.textContent = "Código inválido o no encontrado.";
+      }
+
+      actualizarTotales();
+    }
+
+    function calcularTotales() {
+      const montoDescuento = (subtotal * porcentajeDescuento) / 100;
+      const totalFinal = subtotal - montoDescuento;
+      return { montoDescuento, totalFinal };
+    }
+
+    function actualizarTotales() {
+      const { montoDescuento, totalFinal } = calcularTotales();
+
+      document.getElementById('txt-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById('txt-total').textContent = `$${totalFinal.toFixed(2)}`;
+
+      const filaDescuento = document.getElementById('fila-descuento');
+      if (porcentajeDescuento > 0) {
+        document.getElementById('txt-porcentaje').textContent = porcentajeDescuento;
+        document.getElementById('txt-descuento').textContent = `-$${montoDescuento.toFixed(2)}`;
+        filaDescuento.style.display = 'flex';
+      } else {
+        filaDescuento.style.display = 'none';
+      }
+    }
+
+    function generarTextoResumen() {
+      const { montoDescuento, totalFinal } = calcularTotales();
+      let texto = `*NUEVO PEDIDO*\n`;
+      texto += `--------------------------\n`;
+      texto += `- 1x Saint Gottard Dulces Sueños ($1500.00)\n`;
+      texto += `- 2x Tisana Anti Stress ($2000.00)\n`;
+      texto += `--------------------------\n`;
+      texto += `Subtotal: $${subtotal.toFixed(2)}\n`;
+
+      if (porcentajeDescuento > 0) {
+        texto += `Cupón (${codigoAplicado}): -${porcentajeDescuento}% ($${montoDescuento.toFixed(2)})\n`;
+      }
+
+      texto += `*Total Final: $${totalFinal.toFixed(2)}*`;
+      return texto;
+    }
+
+    function enviarWhatsApp() {
+      const telefono = "123456789"; // Reemplazar por tu número de WhatsApp
+      const mensaje = encodeURIComponent(generarTextoResumen());
+      window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+    }
+
+    function imprimirCarrito() {
+      window.print();
+    }
+  </script>
+</body>
+</html>
