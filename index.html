@@ -197,27 +197,15 @@
             display: flex;
             gap: 5px;
             margin-top: 10px;
-            align-items: center;
-        }
-
-        .producto-actions input[type="number"],
-        .producto-actions select {
-            padding: 8px 4px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            text-align: center;
-            box-sizing: border-box;
         }
 
         .producto-actions input[type="number"] {
-            width: 35%;
+            width: 30%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            text-align: center;
             flex-grow: 0;
-        }
-
-        .producto-actions select {
-            width: 35%;
-            font-size: 0.85em;
-            background-color: #fff;
         }
 
         .producto-actions button {
@@ -265,6 +253,7 @@
             display: none;
         }
         
+        /* ESTILOS NUEVOS PARA EL MENÚ DESPLEGABLE CON IMÁGENES */
         .menu-desplegable-contenido {
             position: fixed;
             top: 10px;
@@ -402,7 +391,7 @@
         }
         
         .cart-item-quantity input[type="number"] {
-            width: 45px;
+            width: 40px;
             text-align: center;
             margin: 0 5px;
             border: 1px solid #ced4da;
@@ -701,6 +690,8 @@
         const productsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv';
         const securityCodeUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv&range=A2';
         const discountsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=764558998&single=true&output=csv';
+        
+        // URL DE LA HOJA DE CATEGORÍAS E IMÁGENES
         const categoriesUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=1687466182&single=true&output=csv';
 
         const logoSinTaccUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5T7nDfaM_05QQOmcKUhuZoU6CnTZt0Ig9bQ&s';
@@ -726,24 +717,16 @@
         const DISCOUNT_THRESHOLD_20 = 20;
         const DISCOUNT_PERCENTAGE_20 = 0.20;
 
-        function isPesable(product) {
-            const pesableValue = (product.Pesable || product['Pesable'] || '').toUpperCase();
-            return pesableValue === 'SI' || pesableValue === 'SÍ' || pesableValue === 'TRUE';
-        }
-
         function calculateItemTotal(item) {
             let discountPercentage = 0;
             let discountMessage = '';
 
-            // Solo aplicar descuento por volumen a items unitarios
-            if (!item.isPesable) {
-                if (item.quantity >= DISCOUNT_THRESHOLD_20) {
-                    discountPercentage = DISCOUNT_PERCENTAGE_20;
-                    discountMessage = ` (-20%)`;
-                } else if (item.quantity >= DISCOUNT_THRESHOLD_10) {
-                    discountPercentage = DISCOUNT_PERCENTAGE_10;
-                    discountMessage = ` (-10%)`;
-                }
+            if (item.quantity >= DISCOUNT_THRESHOLD_20) {
+                discountPercentage = DISCOUNT_PERCENTAGE_20;
+                discountMessage = ` (-20%)`;
+            } else if (item.quantity >= DISCOUNT_THRESHOLD_10) {
+                discountPercentage = DISCOUNT_PERCENTAGE_10;
+                discountMessage = ` (-10%)`;
             }
 
             const discountedPricePerUnit = item.price * (1 - discountPercentage);
@@ -959,15 +942,12 @@
                         const precioP = document.createElement('p');
                         const price = parseFloat(productData.Precio);
                         const isInStock = price > 0; 
-                        const pesable = isPesable(productData);
 
                         if (!isInStock) {
                             precioP.textContent = 'STOCK NO DISPONIBLE';
                             precioP.classList.add('no-stock');
                         } else {
-                            precioP.textContent = pesable 
-                                ? `Precio: $${price.toFixed(2)} / kg` 
-                                : `Precio: $${price.toFixed(2)}`;
+                            precioP.textContent = `Precio: $${price.toFixed(2)}`;
                         }
                         productoInfoDiv.appendChild(precioP);
 
@@ -1028,49 +1008,10 @@
 
                         const quantityInput = document.createElement('input');
                         quantityInput.type = 'number';
+                        quantityInput.min = 1;
+                        quantityInput.value = 1;
                         quantityInput.disabled = !isInStock;
-
-                        let unitSelect = null;
-
-                        if (pesable) {
-                            quantityInput.min = 10;
-                            quantityInput.step = 10;
-                            quantityInput.value = 100;
-
-                            unitSelect = document.createElement('select');
-                            unitSelect.disabled = !isInStock;
-                            
-                            const optGrams = document.createElement('option');
-                            optGrams.value = 'g';
-                            optGrams.textContent = 'g';
-                            
-                            const optKg = document.createElement('option');
-                            optKg.value = 'kg';
-                            optKg.textContent = 'kg';
-                            
-                            unitSelect.appendChild(optGrams);
-                            unitSelect.appendChild(optKg);
-
-                            unitSelect.onchange = () => {
-                                if (unitSelect.value === 'kg') {
-                                    quantityInput.min = 0.01;
-                                    quantityInput.step = 0.05;
-                                    quantityInput.value = 0.1;
-                                } else {
-                                    quantityInput.min = 10;
-                                    quantityInput.step = 10;
-                                    quantityInput.value = 100;
-                                }
-                            };
-
-                            productoActionsDiv.appendChild(quantityInput);
-                            productoActionsDiv.appendChild(unitSelect);
-                        } else {
-                            quantityInput.min = 1;
-                            quantityInput.step = 1;
-                            quantityInput.value = 1;
-                            productoActionsDiv.appendChild(quantityInput);
-                        }
+                        productoActionsDiv.appendChild(quantityInput);
 
                         const addButton = document.createElement('button');
                         addButton.textContent = 'Agregar';
@@ -1078,15 +1019,8 @@
                         if (!isInStock) addButton.classList.add('no-stock-button');
                         
                         addButton.onclick = () => {
-                            const rawQty = parseFloat(quantityInput.value);
-                            if (isNaN(rawQty) || rawQty <= 0) return;
-
-                            let qtyInKg = rawQty;
-                            if (pesable && unitSelect && unitSelect.value === 'g') {
-                                qtyInKg = rawQty / 1000;
-                            }
-
-                            addToCart(productData, qtyInKg);
+                            const quantity = parseInt(quantityInput.value);
+                            if (quantity > 0) addToCart(productData, quantity);
                         };
                         productoActionsDiv.appendChild(addButton);
 
@@ -1121,35 +1055,19 @@
         }
 
         function addToCart(product, quantity = 1) {
-            const pesable = isPesable(product);
             const existingItem = cart.find(item => item.name === product['Nombre del Producto']);
-            
             if (existingItem) {
                 existingItem.quantity += quantity;
             } else {
                 cart.push({
                     name: product['Nombre del Producto'],
                     price: parseFloat(product.Precio),
-                    quantity: quantity,
-                    isPesable: pesable
+                    quantity: quantity
                 });
             }
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartDisplay();
-
-            let displayQty = quantity;
-            let displayUnit = '';
-            if (pesable) {
-                if (quantity < 1) {
-                    displayQty = Math.round(quantity * 1000);
-                    displayUnit = 'g';
-                } else {
-                    displayQty = parseFloat(quantity.toFixed(3));
-                    displayUnit = 'kg';
-                }
-            }
-            
-            showNotification(`${displayQty}${displayUnit} ${product['Nombre del Producto']} agregado.`);
+            showNotification(`${quantity}x ${product['Nombre del Producto']} agregado.`);
         }
            
         function updateCartDisplay() {
@@ -1166,32 +1084,16 @@
                 subtotal += item.price * item.quantity;
                 finalTotal += itemTotal;
 
-                let quantityLabel = '';
-                let stepVal = 1;
-                let minVal = 1;
-
-                if (item.isPesable) {
-                    stepVal = 0.05;
-                    minVal = 0.01;
-                    if (item.quantity < 1) {
-                        quantityLabel = `${Math.round(item.quantity * 1000)}g`;
-                    } else {
-                        quantityLabel = `${parseFloat(item.quantity.toFixed(3))}kg`;
-                    }
-                } else {
-                    quantityLabel = `${item.quantity}`;
-                }
-
                 const li = document.createElement('li');
                 li.classList.add('cart-item');
                 li.innerHTML = `
                     <div class="cart-item-details">
                         <p>${item.name}</p>
-                        <p>Cant: ${quantityLabel} | Total: $${itemTotal.toFixed(2)}<span style="color: green;">${discountMessage}</span></p>
+                        <p>Cant: ${item.quantity} | Total: $${itemTotal.toFixed(2)}<span style="color: green;">${discountMessage}</span></p>
                     </div>
                     <div class="cart-item-quantity">
                         <button class="decrease-quantity" data-name="${item.name}">-</button>
-                        <input type="number" value="${item.quantity}" min="${minVal}" step="${stepVal}" data-name="${item.name}">
+                        <input type="number" value="${item.quantity}" min="1" data-name="${item.name}">
                         <button class="increase-quantity" data-name="${item.name}">+</button>
                     </div>
                     <button class="remove-item" data-name="${item.name}">&times;</button>
@@ -1232,14 +1134,10 @@
                 const item = cart.find(i => i.name === productName);
                 if (!item) return;
 
-                const increment = item.isPesable ? 0.05 : 1;
-
                 if (target.classList.contains('increase-quantity')) {
-                    item.quantity = parseFloat((item.quantity + increment).toFixed(3));
+                    item.quantity++;
                 } else if (target.classList.contains('decrease-quantity')) {
-                    if (item.quantity > increment) {
-                        item.quantity = parseFloat((item.quantity - increment).toFixed(3));
-                    }
+                    if (item.quantity > 1) item.quantity--;
                 } else if (target.classList.contains('remove-item')) {
                     cart = cart.filter(i => i.name !== productName);
                 }
@@ -1251,11 +1149,11 @@
             newCartItemsContainer.querySelectorAll('input[type="number"]').forEach(input => {
                 input.onchange = (e) => {
                     const productName = e.target.dataset.name;
-                    const newQuantity = parseFloat(e.target.value);
+                    const newQuantity = parseInt(e.target.value, 10);
                     const item = cart.find(i => i.name === productName);
-                    if (item && !isNaN(newQuantity) && newQuantity > 0) {
-                        item.quantity = parseFloat(newQuantity.toFixed(3));
-                    } else if (item && (isNaN(newQuantity) || newQuantity <= 0)) {
+                    if (item && newQuantity >= 1) {
+                        item.quantity = newQuantity;
+                    } else if (item && newQuantity < 1) {
                         cart = cart.filter(i => i.name !== productName);
                     }
                     localStorage.setItem('cart', JSON.stringify(cart));
@@ -1317,8 +1215,8 @@
             });
 
             if (product) {
-                const qtyToAdd = isPesable(product) ? 0.1 : 1;
-                addToCart(product, qtyToAdd);
+                addToCart(product, 1);
+                showNotification(`🛒 Agregado: ${product['Nombre del Producto']}`);
                 stopQrScanner(); 
             } else {
                 showNotification(`❌ Código "${cleanedCode}" no encontrado.`);
@@ -1328,6 +1226,8 @@
         function onScanFailure(error) {
             if (error.includes("No QR code found") || error.includes("No stream")) return;
         }
+
+        // --- LÓGICA DE CUPONES Y PROCESAMIENTO DE PEDIDO ---
 
         function openDiscountModal(actionType) {
             if (cart.length === 0) return;
@@ -1390,19 +1290,10 @@
                 rawSubtotal += item.price * item.quantity;
                 const itemName = item.name.length > 30 ? item.name.substring(0, 27) + '...' : item.name;
 
-                let qtyPrint = '';
-                if (item.isPesable) {
-                    qtyPrint = item.quantity < 1 
-                        ? `${Math.round(item.quantity * 1000)}g` 
-                        : `${parseFloat(item.quantity.toFixed(3))}kg`;
-                } else {
-                    qtyPrint = `${item.quantity}`;
-                }
-
                 ticketItemsHTML += `
                     <div style="display: flex; justify-content: space-between; margin: 3px 0;">
                         <span style="max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${itemName}</span>
-                        <span style="text-align: center; width: 20%;">${qtyPrint}</span>
+                        <span style="text-align: center; width: 20%;">${item.quantity}</span>
                         <span style="text-align: right; width: 35%;">$${itemTotal.toFixed(2)}</span>
                     </div>
                 `;
@@ -1465,16 +1356,7 @@
 
             cart.forEach(item => {
                 const calculation = calculateItemTotal(item);
-                let qtyText = '';
-                if (item.isPesable) {
-                    qtyText = item.quantity < 1 
-                        ? `${Math.round(item.quantity * 1000)}g` 
-                        : `${parseFloat(item.quantity.toFixed(3))}kg`;
-                } else {
-                    qtyText = `${item.quantity}`;
-                }
-
-                message += `* ${item.name} - Cantidad: ${qtyText} - Subtotal: $${calculation.itemTotal.toFixed(2)}${calculation.discountMessage}\n`;
+                message += `* ${item.name} - Cantidad: ${item.quantity} - Subtotal: $${calculation.itemTotal.toFixed(2)}${calculation.discountMessage}\n`;
                 totalAfterVolDiscounts += calculation.itemTotal;
             });
 
