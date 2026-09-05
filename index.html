@@ -253,19 +253,20 @@
             display: none;
         }
         
+        /* ESTILOS NUEVOS PARA EL MENÚ DESPLEGABLE CON IMÁGENES */
         .menu-desplegable-contenido {
             position: fixed;
             top: 10px;
             right: 10px; 
             background-color: white;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
             z-index: 999;
-            padding: 10px 0;
+            padding: 10px;
             max-height: 80vh;
             overflow-y: auto;
-            min-width: 150px;
+            width: 260px;
             display: none;
         }
         
@@ -273,19 +274,47 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        
+
+        .menu-desplegable-contenido li {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 60px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .menu-desplegable-contenido li:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+        }
+
         .menu-desplegable-contenido a {
             text-decoration: none;
-            color: #333;
-            display: block;
-            padding: 8px 15px;
-            transition: background-color 0.2s;
+            color: #ffffff;
+            font-weight: bold;
             font-size: 1em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            text-align: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            transition: background 0.2s ease;
         }
         
         .menu-desplegable-contenido a:hover {
-            background-color: #f0f0f0;
+            background: rgba(0, 0, 0, 0.3);
         }
 
         #cart {
@@ -660,9 +689,10 @@
 
         const productsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv';
         const securityCodeUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv&range=A2';
-        
-        // URL ACTUALIZADA CON EL GID EXACTO DE LA HOJA "Descuentos"
         const discountsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=764558998&single=true&output=csv';
+        
+        // URL DE LA HOJA DE CATEGORÍAS E IMÁGENES
+        const categoriesUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=1687466182&single=true&output=csv';
 
         const logoSinTaccUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5T7nDfaM_05QQOmcKUhuZoU6CnTZt0Ig9bQ&s';
         const logoVeganoUrl = 'https://static.vecteezy.com/system/resources/thumbnails/053/442/900/small/vegan-icon-set-organic-logos-and-badges-green-leaf-on-white-background-illustration-png.png';
@@ -673,6 +703,7 @@
 
         let allProducts = []; 
         let availableDiscounts = []; 
+        let categoriesData = [];
         let appliedCoupon = null; 
         let pendingAction = null; 
 
@@ -727,11 +758,12 @@
                 return; 
             }
 
-            const validateCode = () => {
+            const validateCode = async () => {
                 const inputCode = securityInput.value.trim().toUpperCase();
                 if (inputCode === actualCode && actualCode !== '') {
                     loginScreen.style.display = 'none';
                     document.body.style.opacity = '1';
+                    await loadCategoriesData();
                     loadProducts(); 
                     loadDiscounts();
                 } else {
@@ -747,6 +779,17 @@
             });
             
             document.body.style.opacity = '1'; 
+        }
+
+        async function loadCategoriesData() {
+            try {
+                const response = await fetch(categoriesUrl);
+                if (!response.ok) return;
+                const csvText = await response.text();
+                categoriesData = parseCSV(csvText);
+            } catch (error) {
+                console.warn('No se pudieron cargar las imágenes de categorías:', error);
+            }
         }
 
         async function loadDiscounts() {
@@ -811,12 +854,28 @@
 
             uniqueCategories.sort().forEach(category => { 
                 const listItem = document.createElement('li');
+                
+                const foundCategory = categoriesData.find(c => {
+                    const catName = c['Categoría'] || c['Categoria'] || Object.values(c)[0] || '';
+                    return catName.trim().toLowerCase() === category.trim().toLowerCase();
+                });
+
+                const bgImage = foundCategory ? (foundCategory['categoria imagen'] || foundCategory['Categoria Imagen'] || Object.values(foundCategory)[1]) : '';
+
+                if (bgImage && bgImage.trim() !== '') {
+                    listItem.style.backgroundImage = `url('${bgImage.trim()}')`;
+                } else {
+                    listItem.style.backgroundColor = '#007bff';
+                }
+
                 const link = document.createElement('a');
                 link.href = `#${normalizeText(category)}`; 
                 link.textContent = category.replace(/[\uD800-\uDBFF\uDC00-\uDFFF\u2700-\u27BF\u2600-\u26FF\uFE00-\uFE0F]/g, '').trim(); 
+                
                 listItem.appendChild(link);
                 categoryMenu.appendChild(listItem);
             });
+            setupSmoothScrolling();
         }
 
         function displayProducts(productsToDisplay) {
@@ -1191,7 +1250,6 @@
                 return;
             }
 
-            // Búsqueda flexible que toma la 1° columna (Código) y 2° columna (Porcentaje) de la hoja
             const found = availableDiscounts.find(d => {
                 const rawCode = d['Código Discount'] || d['Codigo Discount'] || Object.values(d)[0] || '';
                 return rawCode.replace(/["\r\n]/g, '').trim().toUpperCase() === cleanCode;
