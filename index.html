@@ -661,8 +661,8 @@
         const productsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv';
         const securityCodeUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv&range=A2';
         
-        // REEMPLAZAR ESTA URL CON EL CSV PUBLICADO DE LA PESTAÑA "Descuentos"
-        const discountsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=COLOCAR_GID_DESCUENTOS&single=true&output=csv';
+        // URL ACTUALIZADA CON EL GID EXACTO DE LA HOJA "Descuentos"
+        const discountsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=764558998&single=true&output=csv';
 
         const logoSinTaccUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5T7nDfaM_05QQOmcKUhuZoU6CnTZt0Ig9bQ&s';
         const logoVeganoUrl = 'https://static.vecteezy.com/system/resources/thumbnails/053/442/900/small/vegan-icon-set-organic-logos-and-badges-green-leaf-on-white-background-illustration-png.png';
@@ -673,8 +673,8 @@
 
         let allProducts = []; 
         let availableDiscounts = []; 
-        let appliedCoupon = null; // Guardará el objeto del cupón { code, percent }
-        let pendingAction = null; // 'print' o 'whatsapp'
+        let appliedCoupon = null; 
+        let pendingAction = null; 
 
         const qrScannerContainer = document.getElementById('qr-scanner-container');
         const discountModalContainer = document.getElementById('discount-modal-container');
@@ -1179,23 +1179,35 @@
 
         function validateAndApplyDiscount(codeEntered) {
             const cleanCode = codeEntered.trim().toUpperCase();
+            
             if (!cleanCode) {
-                showNotification(' Ingrese un código válido.');
+                showNotification('⚠️ Ingrese un código válido.');
                 return;
             }
 
-            const found = availableDiscounts.find(d => 
-                (d['Código Discount'] || d['Codigo Discount'] || '').trim().toUpperCase() === cleanCode
-            );
+            if (availableDiscounts.length === 0) {
+                showNotification('⚠️ Cargando lista de cupones... Intente de nuevo en un segundo.');
+                loadDiscounts();
+                return;
+            }
+
+            // Búsqueda flexible que toma la 1° columna (Código) y 2° columna (Porcentaje) de la hoja
+            const found = availableDiscounts.find(d => {
+                const rawCode = d['Código Discount'] || d['Codigo Discount'] || Object.values(d)[0] || '';
+                return rawCode.replace(/["\r\n]/g, '').trim().toUpperCase() === cleanCode;
+            });
 
             if (found) {
-                const percent = parseFloat(found['% Desc'] || 0);
+                const rawPercent = found['% Desc'] || Object.values(found)[1] || '0';
+                const percent = parseFloat(rawPercent.replace(/[^0-9.]/g, '')) || 0;
+
                 appliedCoupon = { code: cleanCode, percent: percent };
-                showNotification(` Cupón ${cleanCode} (${percent}%) Aplicado.`);
-                discountModalContainer.style.display = 'none';
+                showNotification(`✅ Cupón ${cleanCode} (-${percent}%) aplicado.`);
+                
+                document.getElementById('discount-modal-container').style.display = 'none';
                 executePendingAction();
             } else {
-                showNotification(` Cupón "${cleanCode}" no válido.`);
+                showNotification(`❌ Cupón "${cleanCode}" no encontrado o no válido.`);
             }
         }
 
@@ -1277,7 +1289,7 @@
                  setTimeout(() => printWindow.close(), 500);
             };
 
-            appliedCoupon = null; // Reiniciar después de procesar
+            appliedCoupon = null; 
         }
 
         function sendWhatsAppOrder() {
@@ -1301,7 +1313,7 @@
             message += `\n*TOTAL FINAL: $${finalPrice.toFixed(2)}*\n\n¡Gracias!`;
             window.open(`https://wa.me/+5491164708681?text=${encodeURIComponent(message)}`, '_blank');
             
-            appliedCoupon = null; // Reiniciar después de procesar
+            appliedCoupon = null; 
         }
 
         function handleButtonClick(event) {
@@ -1346,11 +1358,9 @@
         document.getElementById('category-icon').addEventListener('click', handleButtonClick);
         document.getElementById('qr-scan-icon').addEventListener('click', handleButtonClick);
         
-        // BOTONES DEL CARRITO QUE DISPARAN EL CUPÓN DE DESCUENTO
         document.getElementById('print-cart-button').addEventListener('click', () => openDiscountModal('print')); 
         document.getElementById('send-order-button').addEventListener('click', () => openDiscountModal('whatsapp'));
 
-        // ACCIONES DEL MODAL DE DESCUENTO
         document.getElementById('apply-discount-code-btn').addEventListener('click', () => {
             const code = document.getElementById('discount-code-input').value;
             validateAndApplyDiscount(code);
