@@ -1,208 +1,1397 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carrito de Compras con Descuentos</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 0 15px;
-      color: #333;
-    }
-    .card {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .item-line {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .cupon-container {
-      margin: 20px 0;
-      padding: 12px;
-      background-color: #f9f9f9;
-      border-radius: 6px;
-    }
-    .input-group {
-      display: flex;
-      gap: 8px;
-      margin-top: 6px;
-    }
-    input[type="text"] {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-    button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .btn-aplicar { background-color: #4CAF50; color: white; }
-    .btn-wa { background-color: #25D366; color: white; width: 100%; margin-bottom: 8px; }
-    .btn-print { background-color: #008CBA; color: white; width: 100%; }
-    .resumen-totales {
-      margin: 15px 0;
-      font-size: 1.05em;
-    }
-    .mensaje {
-      margin-top: 6px;
-      font-size: 0.85em;
-      font-weight: bold;
-    }
-    .mensaje.exito { color: #2e7d32; }
-    .mensaje.error { color: #c62828; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dietética Virgilio | Catálogo de Productos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding-bottom: 70px;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        
+        #login-screen {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: #f8f8f8; 
+            z-index: 3000; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center;
+        }
+        
+        #login-screen > div {
+            background-color: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .fixed-icons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: #343a40;
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+            border-top: 1px solid #495057;
+        }
+
+        .fixed-icons button {
+            background-color: transparent;
+            color: white;
+            border: none;
+            padding: 10px 5px;
+            cursor: pointer;
+            flex-grow: 1;
+            text-align: center;
+            transition: background-color 0.2s ease;
+            font-size: 1.2em;
+            position: relative;
+        }
+
+        .fixed-icons button:hover,
+        .fixed-icons button:focus {
+            background-color: rgba(255, 255, 255, 0.15);
+            outline: none;
+        }
+
+        #cart-count {
+            position: absolute;
+            top: 0px;
+            right: 15%;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 5px;
+            font-size: 0.7em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px; 
+            height: 18px;
+            transform: translate(50%, 0);
+        }
+
+        #products {
+            padding: 10px 20px 20px;
+        }
+        
+        .category {
+            margin-bottom: 40px;
+        }
+        
+        .category h2 {
+            font-size: 1.8em;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .category-products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: flex-start;
+        }
+
+        .producto {
+            overflow: hidden;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            text-align: center;
+            width: calc(50% - 7.5px);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+        
+        .producto:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .producto img {
+            max-width: 100%;
+            height: auto;
+            max-height: 120px; 
+            object-fit: contain;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: opacity 0.3s, transform 0.3s ease;
+            cursor: pointer;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .producto img:hover,
+        .producto img.is-zoomed {
+            transform: scale(1.8);
+            position: relative;
+            z-index: 10;
+        }
+
+        .producto h3 {
+            font-size: 1em;
+            margin: 5px 0;
+            color: #212529;
+            min-height: 2.5em;
+        }
+
+        .producto p {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .no-stock {
+            color: #dc3545 !important;
+            font-weight: bold;
+        }
+        
+        .no-stock-button {
+            background-color: #6c757d !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
+        }
+
+        .propiedades-container {
+            min-height: 30px; 
+            margin: 5px 0;
+        }
+        
+        .logo-propiedad {
+            width: 25px;
+            height: 25px;
+            margin: 0 3px;
+            border-radius: 50%;
+            object-fit: cover;
+            vertical-align: middle;
+        }
+
+        .producto-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .producto-actions input[type="number"] {
+            width: 30%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            text-align: center;
+            flex-grow: 0;
+        }
+
+        .producto-actions button {
+            flex-grow: 1;
+            padding: 8px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .producto-actions button:hover:not(:disabled) {
+            background-color: #1e7e34;
+        }
+        
+        .load-more-btn {
+            background-color: #007bff !important;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px !important;
+            transition: background-color 0.2s;
+        }
+        .load-more-btn:hover {
+            background-color: #0056b3 !important;
+        }
+
+        #search {
+            position: fixed;
+            top: 10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 450px;
+            padding: 10px;
+            z-index: 999;
+            border-radius: 8px;
+            border: 1px solid #007bff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
+            display: none;
+        }
+        
+        .menu-desplegable-contenido {
+            position: fixed;
+            top: 10px;
+            right: 10px; 
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            padding: 10px 0;
+            max-height: 80vh;
+            overflow-y: auto;
+            min-width: 150px;
+            display: none;
+        }
+        
+        .menu-desplegable-contenido ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .menu-desplegable-contenido a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+            padding: 8px 15px;
+            transition: background-color 0.2s;
+            font-size: 1em;
+        }
+        
+        .menu-desplegable-contenido a:hover {
+            background-color: #f0f0f0;
+        }
+
+        #cart {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 90%;
+            max-width: 380px;
+            height: 100%;
+            background-color: #f8f9fa;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            z-index: 1050;
+            display: none;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        #cart-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            gap: 5px;
+        }
+        
+        .cart-item-details {
+            flex-grow: 1;
+        }
+        
+        .cart-item-details p:first-child {
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            font-size: 0.95em;
+        }
+        
+        .cart-item-details p:last-child {
+            margin: 0;
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+        
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+        }
+        
+        .cart-item-quantity button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            line-height: 1;
+            font-size: 1em;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .cart-item-quantity input[type="number"] {
+            width: 40px;
+            text-align: center;
+            margin: 0 5px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 0;
+        }
+        
+        .remove-item {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            line-height: 1;
+            font-weight: bold;
+            font-size: 1em;
+            margin-left: 10px;
+            transition: background-color 0.2s;
+        }
+        
+        #send-order-button, #print-cart-button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px; 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        #print-cart-button {
+            background-color: #007bff; 
+        }
+        #print-cart-button:hover {
+            background-color: #0056b3; 
+        }
+        
+        #send-order-button {
+            background-color: #25D366;
+        }
+        #send-order-button:hover {
+            background-color: #1daa51; 
+        }
+        
+        #send-order-button:disabled, #print-cart-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        #qr-scanner-container, #discount-modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        #qr-scanner-content, .discount-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        
+        #qr-scanner-content h2, .discount-modal-content h2 {
+            margin-top: 0;
+            font-size: 1.3em;
+            color: #007bff;
+        }
+        
+        #close-qr-scanner, #close-discount-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        #reader {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 75px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1100;
+            animation: fadeInOut 3s forwards;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            10% { opacity: 1; transform: translate(-50%, 0); }
+            90% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, 20px); }
+        }
+        
+        .descripcion-container {
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: #495057;
+            text-align: left;
+            min-height: 1.5em;
+        }
+        
+        .leer-mas-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            padding: 0 5px;
+            font-size: 0.9em;
+            vertical-align: top;
+        }
+
+        .btn-discount-action {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .producto {
+                width: calc(33.333% - 10px);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .producto {
+                width: calc(25% - 11.25px);
+            }
+            #search {
+                max-width: 600px;
+            }
+            .menu-desplegable-contenido {
+                right: 20px;
+            }
+        }
+        
+        @media print {
+            body > *:not(.print-ticket) {
+                display: none !important;
+            }
+
+            .print-ticket {
+                display: block !important; 
+                width: 80mm;
+                max-width: 80mm;
+                margin: 0;
+                padding: 5mm; 
+                font-family: monospace, 'Courier New', monospace;
+                font-size: 9pt; 
+                color: black;
+                page-break-after: always;
+            }
+
+            @page {
+                size: 80mm auto; 
+                margin: 0;
+            }
+            
+            .print-ticket * {
+                color: black !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                background-color: transparent !important;
+            }
+        }
+    </style>
 </head>
-<body>
-
-  <div class="card">
-    <h2>Tu Carrito</h2>
+<body style="opacity: 0;"> 
     
-    <div id="lista-productos">
-      <div class="item-line">
-        <span>1x Saint Gottard Dulces Sueños</span>
-        <span>$1500.00</span>
-      </div>
-      <div class="item-line">
-        <span>2x Tisana Anti Stress</span>
-        <span>$2000.00</span>
-      </div>
+    <div id="login-screen">
+        <div>
+            <h2>🔐 Acceso Requerido</h2>
+            <p>Introduce el código de seguridad para acceder al catálogo.</p>
+            <input type="password" id="security-input" placeholder="Ingresa el código" style="padding: 10px; margin: 15px 0; border: 1px solid #ced4da; border-radius: 5px; width: 200px; text-align: center;">
+            <button id="access-button" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; display: block; width: 100%;">Acceder</button>
+            <p id="error-message" style="color: #dc3545; margin-top: 10px; display: none;">Código incorrecto. Inténtalo de nuevo.</p>
+        </div>
+    </div>
+    
+    <div id="qr-scanner-container">
+        <div id="qr-scanner-content">
+            <h2>Escanear Código (QR / Barras)</h2>
+            <div id="reader"></div> 
+            <button id="close-qr-scanner"><i class="fas fa-times"></i></button>
+        </div>
     </div>
 
-    <div class="cupon-container">
-      <label for="codigoCupon"><strong>¿Tienes un cupón?</strong></label>
-      <div class="input-group">
-        <input type="text" id="codigoCupon" placeholder="Ingrese o escanee código">
-        <button type="button" class="btn-aplicar" onclick="aplicarCupon()">Aplicar</button>
-      </div>
-      <div id="mensajeCupon" class="mensaje"></div>
+    <!-- MODAL DE CUPÓN DE DESCUENTO -->
+    <div id="discount-modal-container">
+        <div class="discount-modal-content">
+            <button id="close-discount-modal"><i class="fas fa-times"></i></button>
+            <h2>🎟️ Cupón de Descuento</h2>
+            <p>Ingrese el código o escanee el cupón de descuento:</p>
+            
+            <input type="text" id="discount-code-input" placeholder="CÓDIGO DE DESCUENTO" style="width: 80%; padding: 10px; text-align: center; text-transform: uppercase; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
+            
+            <button id="apply-discount-code-btn" class="btn-discount-action" style="background-color: #28a745; color: white;">Aplicar Código</button>
+            <button id="scan-discount-code-btn" class="btn-discount-action" style="background-color: #007bff; color: white;"><i class="fas fa-qrcode"></i> Escanear Cupón con Cámara</button>
+            <button id="skip-discount-btn" class="btn-discount-action" style="background-color: #6c757d; color: white;">Continuar Sin Cupón</button>
+        </div>
+    </div>
+    
+    <input type="text" id="search" placeholder="Buscar productos, categorías o código de barras...">
+    
+    <div class="menu-desplegable-contenido">
+        <ul></ul>
     </div>
 
-    <div class="resumen-totales">
-      <div class="item-line">
-        <span>Subtotal:</span>
-        <span id="txt-subtotal">$3500.00</span>
-      </div>
-      <div class="item-line" id="fila-descuento" style="display: none; color: #2e7d32;">
-        <span>Descuento aplicado (<span id="txt-porcentaje">0</span>%):</span>
-        <span id="txt-descuento">-$0.00</span>
-      </div>
-      <div class="item-line" style="font-weight: bold; font-size: 1.2em;">
-        <span>Total:</span>
-        <span id="txt-total">$3500.00</span>
-      </div>
+    <div id="cart">
+        <div class="cart-header">
+            <h3>🛒 Tu Carrito de Pedido</h3>
+            <button id="close-cart-button" style="background: none; border: none; font-size: 1.5em; cursor: pointer; color: #dc3545;">&times;</button>
+        </div>
+        
+        <ul id="cart-items"></ul>
+        
+        <div class="cart-summary">
+            <p>Subtotal: $<span id="cart-subtotal">0.00</span></p>
+            <p id="cart-discount-message" style="color: green; font-weight: bold;"></p>
+            <hr>
+            <h3>Total: $<span id="cart-total">0.00</span></h3>
+        </div>
+        
+        <button id="print-cart-button"><i class="fas fa-print"></i> Imprimir Ticket</button>
+        <button id="send-order-button"><i class="fab fa-whatsapp"></i> Enviar Pedido por WhatsApp</button>
+        
+        <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">* Los descuentos por volumen se aplican automáticamente en el total.</p>
     </div>
 
-    <button class="btn-wa" onclick="enviarWhatsApp()">Enviar Pedido por WhatsApp</button>
-    <button class="btn-print" onclick="imprimirCarrito()">Imprimir Carrito / Comanda</button>
-  </div>
+    <div id="products">
+        <h1>Catálogo de Productos</h1>
+    </div>
 
-  <script>
-    // Subtotal base fijo para el ejemplo
-    let subtotal = 3500.00; 
-    let porcentajeDescuento = 0;
-    let codigoAplicado = "";
+    <div class="fixed-icons">
+        <button id="scroll-top-icon" title="Ir Arriba"><i class="fas fa-arrow-up"></i></button>
+        <button id="search-icon" title="Buscar"><i class="fas fa-search"></i></button>
+        <button id="category-icon" title="Categorías"><i class="fas fa-list"></i></button>
+        <button id="qr-scan-icon" title="Escanear Código (QR / Barras)"><i class="fas fa-qrcode"></i></button>
+        <button id="cart-icon" title="Ver Carrito">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-count" style="display: none;">0</span>
+        </button>
+    </div>
 
-    // Simulación de la base de datos de la hoja "descuentos"
-    // Reemplazar este array por la respuesta de la API/Google Sheets
-    const hojaDescuentos = [
-      { "codigo discount": "DESCUENTO10", "% desc": 10 },
-      { "codigo discount": "PROMO20", "% desc": 20 },
-      { "codigo discount": "PROMO30", "% desc": 30 }
-    ];
+    <script>
+        const PRODUCTS_PER_PAGE = 6; 
+        
+        const hasBeenReset = localStorage.getItem('cartReset');
+        if (!hasBeenReset) {
+          localStorage.clear();
+          localStorage.setItem('cartReset', 'true');
+        }
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-    function aplicarCupon() {
-      const input = document.getElementById('codigoCupon').value.trim().toUpperCase();
-      const mensaje = document.getElementById('mensajeCupon');
+        const productsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv';
+        const securityCodeUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?output=csv&range=A2';
+        
+        // REEMPLAZAR ESTA URL CON EL CSV PUBLICADO DE LA PESTAÑA "Descuentos"
+        const discountsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtRvbHZgDDAVSfbF5R7HlIrv_2w8_ZZOx87Ssf96f9-5mBIIhg3_qofvXaK0TElyogxjN7BI7PJn2l/pub?gid=COLOCAR_GID_DESCUENTOS&single=true&output=csv';
 
-      if (!input) {
-        mensaje.className = "mensaje error";
-        mensaje.textContent = "Ingrese un código de descuento.";
-        return;
-      }
+        const logoSinTaccUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5T7nDfaM_05QQOmcKUhuZoU6CnTZt0Ig9bQ&s';
+        const logoVeganoUrl = 'https://static.vecteezy.com/system/resources/thumbnails/053/442/900/small/vegan-icon-set-organic-logos-and-badges-green-leaf-on-white-background-illustration-png.png';
+        const logoSinAzucarUrl = 'https://www.lastrespatas.com/source/las-tres-patas-sin-azucar.jpg';
+        const logoSinSalUrl = 'https://gmbozone.net/shop/image/data/OZONO%20DOR/Sin_Toxicos/Sin_sal_OZONODOR.jpg';
+        const logoKetoUrl = 'https://cdn-icons-png.flaticon.com/512/10008/10008886.png';
+        const logoOrganicoUrl = 'https://quieronatural.com.ar/wp-content/uploads/2021/12/organicoweb3-283x400.png';
 
-      // Buscar el código en los registros de la hoja
-      const cupon = hojaDescuentos.find(
-        item => String(item["codigo discount"]).trim().toUpperCase() === input
-      );
+        let allProducts = []; 
+        let availableDiscounts = []; 
+        let appliedCoupon = null; // Guardará el objeto del cupón { code, percent }
+        let pendingAction = null; // 'print' o 'whatsapp'
 
-      if (cupon) {
-        porcentajeDescuento = parseFloat(cupon["% desc"]) || 0;
-        codigoAplicado = input;
+        const qrScannerContainer = document.getElementById('qr-scanner-container');
+        const discountModalContainer = document.getElementById('discount-modal-container');
+        let html5QrcodeScanner = null; 
+        let scanningForDiscount = false;
 
-        mensaje.className = "mensaje exito";
-        mensaje.textContent = `¡Cupón "${input}" aplicado correctamente!`;
-      } else {
-        porcentajeDescuento = 0;
-        codigoAplicado = "";
+        const DISCOUNT_THRESHOLD_10 = 10;
+        const DISCOUNT_PERCENTAGE_10 = 0.10;
+        const DISCOUNT_THRESHOLD_20 = 20;
+        const DISCOUNT_PERCENTAGE_20 = 0.20;
 
-        mensaje.className = "mensaje error";
-        mensaje.textContent = "Código inválido o no encontrado.";
-      }
+        function calculateItemTotal(item) {
+            let discountPercentage = 0;
+            let discountMessage = '';
 
-      actualizarTotales();
-    }
+            if (item.quantity >= DISCOUNT_THRESHOLD_20) {
+                discountPercentage = DISCOUNT_PERCENTAGE_20;
+                discountMessage = ` (-20%)`;
+            } else if (item.quantity >= DISCOUNT_THRESHOLD_10) {
+                discountPercentage = DISCOUNT_PERCENTAGE_10;
+                discountMessage = ` (-10%)`;
+            }
 
-    function calcularTotales() {
-      const montoDescuento = (subtotal * porcentajeDescuento) / 100;
-      const totalFinal = subtotal - montoDescuento;
-      return { montoDescuento, totalFinal };
-    }
+            const discountedPricePerUnit = item.price * (1 - discountPercentage);
+            const itemTotal = discountedPricePerUnit * item.quantity;
+            
+            return {
+                itemTotal: itemTotal,
+                discountMessage: discountMessage
+            };
+        }
 
-    function actualizarTotales() {
-      const { montoDescuento, totalFinal } = calcularTotales();
+        async function checkSecurityCode() {
+            const loginScreen = document.getElementById('login-screen');
+            const securityInput = document.getElementById('security-input');
+            const accessButton = document.getElementById('access-button');
+            const errorMessage = document.getElementById('error-message');
 
-      document.getElementById('txt-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-      document.getElementById('txt-total').textContent = `$${totalFinal.toFixed(2)}`;
+            let actualCode = '';
+            try {
+                const response = await fetch(securityCodeUrl);
+                if (!response.ok) throw new Error('Error de conexión');
+                let rawCode = await response.text();
+                actualCode = rawCode.replace(/["\n\r]/g, '').trim().toUpperCase();
+            } catch (error) {
+                console.error('Error al cargar código:', error);
+                errorMessage.textContent = 'Error al conectar con la base de datos.';
+                errorMessage.style.display = 'block';
+                document.body.style.opacity = '1';
+                return; 
+            }
 
-      const filaDescuento = document.getElementById('fila-descuento');
-      if (porcentajeDescuento > 0) {
-        document.getElementById('txt-porcentaje').textContent = porcentajeDescuento;
-        document.getElementById('txt-descuento').textContent = `-$${montoDescuento.toFixed(2)}`;
-        filaDescuento.style.display = 'flex';
-      } else {
-        filaDescuento.style.display = 'none';
-      }
-    }
+            const validateCode = () => {
+                const inputCode = securityInput.value.trim().toUpperCase();
+                if (inputCode === actualCode && actualCode !== '') {
+                    loginScreen.style.display = 'none';
+                    document.body.style.opacity = '1';
+                    loadProducts(); 
+                    loadDiscounts();
+                } else {
+                    errorMessage.textContent = 'Código incorrecto. Inténtalo de nuevo.';
+                    errorMessage.style.display = 'block';
+                    securityInput.value = ''; 
+                }
+            };
 
-    function generarTextoResumen() {
-      const { montoDescuento, totalFinal } = calcularTotales();
-      let texto = `*NUEVO PEDIDO*\n`;
-      texto += `--------------------------\n`;
-      texto += `- 1x Saint Gottard Dulces Sueños ($1500.00)\n`;
-      texto += `- 2x Tisana Anti Stress ($2000.00)\n`;
-      texto += `--------------------------\n`;
-      texto += `Subtotal: $${subtotal.toFixed(2)}\n`;
+            accessButton.onclick = validateCode;
+            securityInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') validateCode();
+            });
+            
+            document.body.style.opacity = '1'; 
+        }
 
-      if (porcentajeDescuento > 0) {
-        texto += `Cupón (${codigoAplicado}): -${porcentajeDescuento}% ($${montoDescuento.toFixed(2)})\n`;
-      }
+        async function loadDiscounts() {
+            try {
+                const response = await fetch(discountsUrl);
+                if (!response.ok) return;
+                const csvText = await response.text();
+                availableDiscounts = parseCSV(csvText);
+            } catch (error) {
+                console.warn('No se pudieron cargar los cupones de descuento:', error);
+            }
+        }
 
-      texto += `*Total Final: $${totalFinal.toFixed(2)}*`;
-      return texto;
-    }
+        async function loadProducts() {
+            try {
+                const response = await fetch(productsUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const csvData = await response.text();
+                
+                allProducts = parseCSV(csvData);
+                if (allProducts.length === 0) throw new Error("El archivo está vacío o sin datos válidos."); 
 
-    function enviarWhatsApp() {
-      const telefono = "123456789"; // Reemplazar por tu número de WhatsApp
-      const mensaje = encodeURIComponent(generarTextoResumen());
-      window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
-    }
+                displayProducts(allProducts); 
+                generateCategoryMenu(allProducts);
+                setupSmoothScrolling(); 
+                updateCartDisplay(); 
+            } catch (error) {
+                console.error('🔴 Error al cargar los productos:', error);
+                document.getElementById('products').innerHTML = `
+                    <div style="text-align:center; padding: 20px; background-color: #ffe0e0; border: 1px solid red; border-radius: 8px;">
+                        <p style="color: red; font-weight: bold;">❌ ERROR AL CARGAR CATÁLOGO ❌</p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
 
-    function imprimirCarrito() {
-      window.print();
-    }
-  </script>
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length <= 1) return [];
+            const headers = lines[0].replace(/\r/g, '').split(',').map(header => header.trim()); 
+            const products = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].replace(/\r/g, '').split(','); 
+                const product = {};
+                if (values.length !== headers.length) continue; 
+                for (let j = 0; j < headers.length; j++) {
+                    product[headers[j]] = values[j] ? values[j].trim().replace(/^"|"$/g, '') : ''; 
+                }
+                if (product[headers[0]] && product[headers[0]].trim() !== '') {
+                    products.push(product);
+                }
+            }
+            return products;
+        }
+
+        function generateCategoryMenu(products) {
+            const categoryMenu = document.querySelector('.menu-desplegable-contenido ul');
+            const uniqueCategories = [...new Set(products.map(product => product.Categoría).filter(cat => cat && cat.trim() !== ''))];
+            categoryMenu.innerHTML = ''; 
+
+            uniqueCategories.sort().forEach(category => { 
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = `#${normalizeText(category)}`; 
+                link.textContent = category.replace(/[\uD800-\uDBFF\uDC00-\uDFFF\u2700-\u27BF\u2600-\u26FF\uFE00-\uFE0F]/g, '').trim(); 
+                listItem.appendChild(link);
+                categoryMenu.appendChild(listItem);
+            });
+        }
+
+        function displayProducts(productsToDisplay) {
+            const productsContainer = document.getElementById('products');
+            productsContainer.innerHTML = ''; 
+
+            const categories = {};
+            productsToDisplay.forEach(product => {
+                if (product.Categoría && product.Categoría.trim() !== '') {
+                    if (!categories[product.Categoría]) {
+                        categories[product.Categoría] = [];
+                    }
+                    categories[product.Categoría].push(product);
+                }
+            });
+
+            Object.keys(categories).sort().forEach(categoryId => {
+                const normalizedCategoryId = normalizeText(categoryId);
+                let categoryDiv = document.createElement('div');
+                categoryDiv.classList.add('category');
+                categoryDiv.id = normalizedCategoryId;
+
+                const h2 = document.createElement('h2');
+                h2.textContent = categoryId;
+                categoryDiv.appendChild(h2);
+
+                const categoryProductsDiv = document.createElement('div');
+                categoryProductsDiv.classList.add('category-products');
+                categoryDiv.appendChild(categoryProductsDiv);
+                productsContainer.appendChild(categoryDiv);
+
+                const categoryProducts = categories[categoryId];
+                let currentShownCount = PRODUCTS_PER_PAGE; 
+                
+                const renderCategoryProducts = (count) => {
+                    categoryProductsDiv.innerHTML = ''; 
+                    categoryProducts.slice(0, count).forEach(productData => {
+                        const productoDiv = document.createElement('div');
+                        productoDiv.classList.add('producto');
+                        productoDiv.dataset.nombre = productData['Nombre del Producto']; 
+
+                        const img = document.createElement('img');
+                        img.src = productData['URL de la Imagen'];
+                        img.alt = productData['Nombre del Producto'] || 'Producto';
+
+                        img.addEventListener('touchstart', () => img.classList.add('is-zoomed'));
+                        img.addEventListener('touchend', () => img.classList.remove('is-zoomed'));
+                        img.addEventListener('touchcancel', () => img.classList.remove('is-zoomed'));
+
+                        img.onerror = function() {
+                            this.src = 'https://via.placeholder.com/150?text=Imagen+No+Disp.'; 
+                            this.alt = 'Imagen no disponible';
+                        };
+
+                        productoDiv.appendChild(img);
+
+                        const productoInfoDiv = document.createElement('div');
+                        productoInfoDiv.classList.add('producto-info');
+
+                        const h3 = document.createElement('h3');
+                        h3.textContent = productData['Nombre del Producto'];
+                        productoInfoDiv.appendChild(h3);
+
+                        const precioP = document.createElement('p');
+                        const price = parseFloat(productData.Precio);
+                        const isInStock = price > 0; 
+
+                        if (!isInStock) {
+                            precioP.textContent = 'STOCK NO DISPONIBLE';
+                            precioP.classList.add('no-stock');
+                        } else {
+                            precioP.textContent = `Precio: $${price.toFixed(2)}`;
+                        }
+                        productoInfoDiv.appendChild(precioP);
+
+                        const propiedadesContainer = document.createElement('div');
+                        propiedadesContainer.classList.add('propiedades-container');
+
+                        const flags = [
+                            { key: 'Sin TACC', url: logoSinTaccUrl },
+                            { key: 'Vegano', url: logoVeganoUrl },
+                            { key: 'Sin Azucar', url: logoSinAzucarUrl },
+                            { key: 'Sin Sal', url: logoSinSalUrl },
+                            { key: 'Keto', url: logoKetoUrl },
+                            { key: 'Organico', url: logoOrganicoUrl }
+                        ];
+
+                        flags.forEach(flag => {
+                            if (productData[flag.key] === 'SI') {
+                                const propImg = document.createElement('img');
+                                propImg.src = flag.url;
+                                propImg.alt = flag.key;
+                                propImg.classList.add('logo-propiedad');
+                                propImg.title = flag.key;
+                                propiedadesContainer.appendChild(propImg);
+                            }
+                        });
+
+                        productoInfoDiv.appendChild(propiedadesContainer);
+
+                        if (productData['Descripción Completa']) {
+                            const descripcionContainer = document.createElement('div');
+                            descripcionContainer.classList.add('descripcion-container');
+
+                            const textoDescripcion = document.createElement('span');
+                            const corta = productData['Descripción Corta'] || '';
+                            const completa = productData['Descripción Completa'];
+                            
+                            textoDescripcion.textContent = corta;
+                            descripcionContainer.appendChild(textoDescripcion);
+
+                            if (completa.length > corta.length) {
+                                const leerMasBtn = document.createElement('button');
+                                leerMasBtn.classList.add('leer-mas-btn');
+                                leerMasBtn.innerHTML = ' &#9660;'; 
+
+                                let isExpanded = false;
+                                leerMasBtn.onclick = function() {
+                                    isExpanded = !isExpanded;
+                                    textoDescripcion.textContent = isExpanded ? completa : corta;
+                                    leerMasBtn.innerHTML = isExpanded ? ' &#9650;' : ' &#9660;';
+                                };
+                                descripcionContainer.appendChild(leerMasBtn);
+                            }
+                            productoInfoDiv.appendChild(descripcionContainer);
+                        }
+
+                        const productoActionsDiv = document.createElement('div');
+                        productoActionsDiv.classList.add('producto-actions');
+
+                        const quantityInput = document.createElement('input');
+                        quantityInput.type = 'number';
+                        quantityInput.min = 1;
+                        quantityInput.value = 1;
+                        quantityInput.disabled = !isInStock;
+                        productoActionsDiv.appendChild(quantityInput);
+
+                        const addButton = document.createElement('button');
+                        addButton.textContent = 'Agregar';
+                        addButton.disabled = !isInStock;
+                        if (!isInStock) addButton.classList.add('no-stock-button');
+                        
+                        addButton.onclick = () => {
+                            const quantity = parseInt(quantityInput.value);
+                            if (quantity > 0) addToCart(productData, quantity);
+                        };
+                        productoActionsDiv.appendChild(addButton);
+
+                        productoDiv.appendChild(productoInfoDiv);
+                        productoDiv.appendChild(productoActionsDiv);
+                        categoryProductsDiv.appendChild(productoDiv);
+                    });
+                    
+                    categoryDiv.querySelector('.load-more-btn')?.remove(); 
+                    if (count < categoryProducts.length) {
+                        const loadMoreButton = document.createElement('button');
+                        loadMoreButton.textContent = 'Cargar más productos';
+                        loadMoreButton.classList.add('load-more-btn');
+                        loadMoreButton.onclick = () => {
+                            currentShownCount += PRODUCTS_PER_PAGE; 
+                            renderCategoryProducts(currentShownCount);
+                        };
+                        categoryDiv.appendChild(loadMoreButton);
+                    }
+                };
+
+                renderCategoryProducts(PRODUCTS_PER_PAGE); 
+            });
+        }
+
+        function normalizeText(text) {
+            return (text || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '') 
+                .replace(/[\s-]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function addToCart(product, quantity = 1) {
+            const existingItem = cart.find(item => item.name === product['Nombre del Producto']);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    name: product['Nombre del Producto'],
+                    price: parseFloat(product.Precio),
+                    quantity: quantity
+                });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartDisplay();
+            showNotification(`${quantity}x ${product['Nombre del Producto']} agregado.`);
+        }
+           
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            let subtotal = 0; 
+            let finalTotal = 0; 
+
+            cart.forEach(item => {
+                const calculation = calculateItemTotal(item);
+                const itemTotal = calculation.itemTotal;
+                const discountMessage = calculation.discountMessage;
+                
+                subtotal += item.price * item.quantity;
+                finalTotal += itemTotal;
+
+                const li = document.createElement('li');
+                li.classList.add('cart-item');
+                li.innerHTML = `
+                    <div class="cart-item-details">
+                        <p>${item.name}</p>
+                        <p>Cant: ${item.quantity} | Total: $${itemTotal.toFixed(2)}<span style="color: green;">${discountMessage}</span></p>
+                    </div>
+                    <div class="cart-item-quantity">
+                        <button class="decrease-quantity" data-name="${item.name}">-</button>
+                        <input type="number" value="${item.quantity}" min="1" data-name="${item.name}">
+                        <button class="increase-quantity" data-name="${item.name}">+</button>
+                    </div>
+                    <button class="remove-item" data-name="${item.name}">&times;</button>
+                `;
+                cartItemsContainer.appendChild(li);
+            });
+
+            document.getElementById('cart-subtotal').textContent = subtotal.toFixed(2);
+            const totalDiscountAmount = subtotal - finalTotal;
+            document.getElementById('cart-discount-message').textContent = totalDiscountAmount > 0 
+                ? `Descuento total: -$${totalDiscountAmount.toFixed(2)}` 
+                : '';
+            document.getElementById('cart-total').textContent = finalTotal.toFixed(2);
+
+            const cartCountElement = document.getElementById('cart-count');
+            const totalArticles = cart.length; 
+            cartCountElement.textContent = totalArticles;
+            cartCountElement.style.display = totalArticles > 0 ? 'flex' : 'none';
+
+            document.getElementById('send-order-button').disabled = cart.length === 0;
+            document.getElementById('print-cart-button').disabled = cart.length === 0;
+
+            attachCartEventListeners();
+        }
+
+        function attachCartEventListeners() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            if (!cartItemsContainer) return;
+
+            const newCartItemsContainer = cartItemsContainer.cloneNode(true);
+            cartItemsContainer.parentNode.replaceChild(newCartItemsContainer, cartItemsContainer);
+
+            newCartItemsContainer.addEventListener('click', (event) => {
+                const target = event.target;
+                const productName = target.dataset.name;
+                if (!productName) return;
+
+                const item = cart.find(i => i.name === productName);
+                if (!item) return;
+
+                if (target.classList.contains('increase-quantity')) {
+                    item.quantity++;
+                } else if (target.classList.contains('decrease-quantity')) {
+                    if (item.quantity > 1) item.quantity--;
+                } else if (target.classList.contains('remove-item')) {
+                    cart = cart.filter(i => i.name !== productName);
+                }
+
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateCartDisplay();
+            });
+
+            newCartItemsContainer.querySelectorAll('input[type="number"]').forEach(input => {
+                input.onchange = (e) => {
+                    const productName = e.target.dataset.name;
+                    const newQuantity = parseInt(e.target.value, 10);
+                    const item = cart.find(i => i.name === productName);
+                    if (item && newQuantity >= 1) {
+                        item.quantity = newQuantity;
+                    } else if (item && newQuantity < 1) {
+                        cart = cart.filter(i => i.name !== productName);
+                    }
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    updateCartDisplay();
+                };
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000); 
+        }
+
+        function setupSmoothScrolling() {
+            document.querySelectorAll('.menu-desplegable-contenido ul li a').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(this.getAttribute('href'));
+                    if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('.menu-desplegable-contenido').style.display = 'none'; 
+                });
+            });
+        }
+
+        function startQrScanner() {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false
+                );
+            }
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function stopQrScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().catch(err => console.warn("Aviso al cerrar escáner:", err));
+            }
+            qrScannerContainer.style.display = 'none';
+            scanningForDiscount = false;
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            const cleanedCode = decodedText.trim();
+
+            if (scanningForDiscount) {
+                stopQrScanner();
+                validateAndApplyDiscount(cleanedCode);
+                return;
+            }
+
+            const normalizedText = normalizeText(cleanedCode);
+            const product = allProducts.find(p => {
+                const barcodeInSheet = (p['Código de Barras'] || p['Codigo de Barras'] || '').trim();
+                const productName = normalizeText(p['Nombre del Producto'] || '');
+                return barcodeInSheet === cleanedCode || productName === normalizedText;
+            });
+
+            if (product) {
+                addToCart(product, 1);
+                showNotification(`🛒 Agregado: ${product['Nombre del Producto']}`);
+                stopQrScanner(); 
+            } else {
+                showNotification(`❌ Código "${cleanedCode}" no encontrado.`);
+            }
+        }
+
+        function onScanFailure(error) {
+            if (error.includes("No QR code found") || error.includes("No stream")) return;
+        }
+
+        // --- LÓGICA DE CUPONES Y PROCESAMIENTO DE PEDIDO ---
+
+        function openDiscountModal(actionType) {
+            if (cart.length === 0) return;
+            pendingAction = actionType;
+            document.getElementById('discount-code-input').value = '';
+            discountModalContainer.style.display = 'flex';
+        }
+
+        function validateAndApplyDiscount(codeEntered) {
+            const cleanCode = codeEntered.trim().toUpperCase();
+            if (!cleanCode) {
+                showNotification(' Ingrese un código válido.');
+                return;
+            }
+
+            const found = availableDiscounts.find(d => 
+                (d['Código Discount'] || d['Codigo Discount'] || '').trim().toUpperCase() === cleanCode
+            );
+
+            if (found) {
+                const percent = parseFloat(found['% Desc'] || 0);
+                appliedCoupon = { code: cleanCode, percent: percent };
+                showNotification(` Cupón ${cleanCode} (${percent}%) Aplicado.`);
+                discountModalContainer.style.display = 'none';
+                executePendingAction();
+            } else {
+                showNotification(` Cupón "${cleanCode}" no válido.`);
+            }
+        }
+
+        function executePendingAction() {
+            if (pendingAction === 'print') {
+                printCart();
+            } else if (pendingAction === 'whatsapp') {
+                sendWhatsAppOrder();
+            }
+            pendingAction = null;
+        }
+
+        function printCart() {
+            let rawSubtotal = 0;
+            let totalAfterVolDiscounts = 0;
+            let ticketItemsHTML = '';
+
+            cart.forEach(item => {
+                const calculation = calculateItemTotal(item);
+                const itemTotal = calculation.itemTotal;
+                totalAfterVolDiscounts += itemTotal;
+                rawSubtotal += item.price * item.quantity;
+                const itemName = item.name.length > 30 ? item.name.substring(0, 27) + '...' : item.name;
+
+                ticketItemsHTML += `
+                    <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                        <span style="max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${itemName}</span>
+                        <span style="text-align: center; width: 20%;">${item.quantity}</span>
+                        <span style="text-align: right; width: 35%;">$${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            let finalPrice = totalAfterVolDiscounts;
+            let couponDiscountText = '';
+
+            if (appliedCoupon && appliedCoupon.percent > 0) {
+                const couponDiscountVal = totalAfterVolDiscounts * (appliedCoupon.percent / 100);
+                finalPrice = totalAfterVolDiscounts - couponDiscountVal;
+                couponDiscountText = `<p style="display: flex; justify-content: space-between; margin: 2px 0;"><span>Cupón (${appliedCoupon.code} -${appliedCoupon.percent}%):</span><span>-$${couponDiscountVal.toFixed(2)}</span></p>`;
+            }
+            
+            const totalDiscount = rawSubtotal - finalPrice;
+
+            const printContent = `
+                <html>
+                    <head>
+                        <title>Ticket de Compra</title>
+                        <style>
+                            @page { size: 80mm auto; margin: 0; }
+                            body { width: 80mm; font-family: monospace; font-size: 9pt; margin: 0; padding: 5mm; color: black; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1 style="text-align: center; font-size: 1.2em; margin-bottom: 5px;">DIETÉTICA VIRGILIO</h1>
+                        <p style="text-align: center; font-size: 0.9em; border-bottom: 1px dashed black; padding-bottom: 5px;">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
+                        <div style="margin-top: 10px; border-bottom: 1px solid black; padding-bottom: 5px; display: flex;">
+                            <span style="font-weight: bold; width: 45%;">PROD</span>
+                            <span style="font-weight: bold; width: 20%; text-align: center;">CANT</span>
+                            <span style="font-weight: bold; width: 35%; text-align: right;">TOTAL</span>
+                        </div>
+                        ${ticketItemsHTML}
+                        <div style="border-top: 1px dashed black; margin-top: 10px; padding-top: 5px;">
+                            <p style="display: flex; justify-content: space-between; margin: 2px 0;"><span>Subtotal:</span><span>$${rawSubtotal.toFixed(2)}</span></p>
+                            ${couponDiscountText}
+                            <p style="display: flex; justify-content: space-between; margin: 2px 0;"><span>Desc. Total:</span><span>-$${totalDiscount.toFixed(2)}</span></p>
+                            <h3 style="display: flex; justify-content: space-between; margin: 5px 0; font-size: 1.1em;"><span>TOTAL:</span><span>$${finalPrice.toFixed(2)}</span></h3>
+                        </div>
+                    </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank', 'width=350,height=400');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.onload = () => {
+                 printWindow.focus();
+                 printWindow.print();
+                 setTimeout(() => printWindow.close(), 500);
+            };
+
+            appliedCoupon = null; // Reiniciar después de procesar
+        }
+
+        function sendWhatsAppOrder() {
+            let message = 'PEDIDO:\n\n';
+            let totalAfterVolDiscounts = 0;
+
+            cart.forEach(item => {
+                const calculation = calculateItemTotal(item);
+                message += `* ${item.name} - Cantidad: ${item.quantity} - Subtotal: $${calculation.itemTotal.toFixed(2)}${calculation.discountMessage}\n`;
+                totalAfterVolDiscounts += calculation.itemTotal;
+            });
+
+            let finalPrice = totalAfterVolDiscounts;
+
+            if (appliedCoupon && appliedCoupon.percent > 0) {
+                const couponDiscountVal = totalAfterVolDiscounts * (appliedCoupon.percent / 100);
+                finalPrice = totalAfterVolDiscounts - couponDiscountVal;
+                message += `\n*Cupón Aplicado:* ${appliedCoupon.code} (-${appliedCoupon.percent}%: -$${couponDiscountVal.toFixed(2)})\n`;
+            }
+
+            message += `\n*TOTAL FINAL: $${finalPrice.toFixed(2)}*\n\n¡Gracias!`;
+            window.open(`https://wa.me/+5491164708681?text=${encodeURIComponent(message)}`, '_blank');
+            
+            appliedCoupon = null; // Reiniciar después de procesar
+        }
+
+        function handleButtonClick(event) {
+            const buttonId = event.currentTarget.id;
+            const cartPanel = document.getElementById('cart');
+            const searchInput = document.getElementById('search');
+            const categoryMenu = document.querySelector('.menu-desplegable-contenido');
+            
+            stopQrScanner();
+            cartPanel.style.display = 'none';
+            searchInput.style.display = 'none';
+            categoryMenu.style.display = 'none';
+            
+            let panelToToggle = null;
+
+            switch (buttonId) {
+                case 'cart-icon':
+                    panelToToggle = cartPanel;
+                    break;
+                case 'search-icon':
+                    panelToToggle = searchInput;
+                    break;
+                case 'category-icon':
+                    panelToToggle = categoryMenu;
+                    break;
+                case 'qr-scan-icon':
+                    scanningForDiscount = false;
+                    qrScannerContainer.style.display = 'flex'; 
+                    startQrScanner(); 
+                    return; 
+            }
+
+            if (panelToToggle) {
+                const isHidden = panelToToggle.style.display === 'none' || panelToToggle.style.display === '';
+                panelToToggle.style.display = isHidden ? 'block' : 'none';
+            }
+        }
+
+        document.getElementById('scroll-top-icon').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        document.getElementById('cart-icon').addEventListener('click', handleButtonClick);
+        document.getElementById('search-icon').addEventListener('click', handleButtonClick);
+        document.getElementById('category-icon').addEventListener('click', handleButtonClick);
+        document.getElementById('qr-scan-icon').addEventListener('click', handleButtonClick);
+        
+        // BOTONES DEL CARRITO QUE DISPARAN EL CUPÓN DE DESCUENTO
+        document.getElementById('print-cart-button').addEventListener('click', () => openDiscountModal('print')); 
+        document.getElementById('send-order-button').addEventListener('click', () => openDiscountModal('whatsapp'));
+
+        // ACCIONES DEL MODAL DE DESCUENTO
+        document.getElementById('apply-discount-code-btn').addEventListener('click', () => {
+            const code = document.getElementById('discount-code-input').value;
+            validateAndApplyDiscount(code);
+        });
+
+        document.getElementById('scan-discount-code-btn').addEventListener('click', () => {
+            discountModalContainer.style.display = 'none';
+            scanningForDiscount = true;
+            qrScannerContainer.style.display = 'flex';
+            startQrScanner();
+        });
+
+        document.getElementById('skip-discount-btn').addEventListener('click', () => {
+            discountModalContainer.style.display = 'none';
+            appliedCoupon = null;
+            executePendingAction();
+        });
+
+        document.getElementById('close-discount-modal').addEventListener('click', () => {
+            discountModalContainer.style.display = 'none';
+            pendingAction = null;
+        });
+
+        document.getElementById('close-qr-scanner').addEventListener('click', stopQrScanner);
+        document.getElementById('close-cart-button').addEventListener('click', () => document.getElementById('cart').style.display = 'none');
+
+        document.getElementById('search').addEventListener('input', (event) => {
+            const searchTerm = normalizeText(event.target.value);
+            const filteredProducts = allProducts.filter(product => {
+                const productName = normalizeText(product['Nombre del Producto']);
+                const productCategory = normalizeText(product.Categoría);
+                const barcode = normalizeText(product['Código de Barras'] || product['Codigo de Barras']);
+                return productName.includes(searchTerm) || productCategory.includes(searchTerm) || barcode.includes(searchTerm);
+            });
+            displayProducts(filteredProducts);
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSecurityCode(); 
+            attachCartEventListeners();
+        });
+    </script>
 </body>
 </html>
